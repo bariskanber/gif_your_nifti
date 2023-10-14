@@ -4,7 +4,7 @@ import os
 import nibabel as nb
 import numpy as np
 from matplotlib.cm import get_cmap
-from imageio import mimwrite
+from imageio import mimwrite, help, show_formats
 from skimage.transform import resize
 
 
@@ -51,27 +51,33 @@ def load_and_prepare_image(filename, size=1):
     # Load NIfTI file
     data = nb.load(filename).get_fdata()
 
-    # Pad data array with zeros to make the shape isometric
     maximum = np.max(data.shape)
 
-    out_img = np.zeros([maximum] * 3)
+    print('***', data.shape)    
 
-    a, b, c = data.shape
-    x, y, z = (list(data.shape) - maximum) / -2
+    assert(len(data.shape)>=2)
+    
+    if len(data.shape)==2:
+        print('Implement and check this')
+        assert(False)
+        
+    if len(data.shape)>3:
+        print('Implement and check this')
+        assert(False)
+        
+    print('***', data.shape)    
 
-    out_img[int(x):a + int(x),
-            int(y):b + int(y),
-            int(z):c + int(z)] = data
+    out_img = data/np.nanmax(data) # Scale image values between 0-1
+    
+    if np.min(data.shape)==1: # Single slice
+        out_img = resize(out_img, np.ceil(np.array(out_img.shape)*size).astype(np.uint16))
+    else:
+        print('.....',out_img.shape)
+        out_img = np.pad(out_img, 5)
+        out_img = resize(out_img, np.ceil(np.array([180+1]*3)*size).astype(np.uint16))
+        print('.....',out_img.shape)
 
-    out_img /= out_img.max()  # scale image values between 0-1
-
-    # Resize image by the following factor
-    if size != 1:
-        out_img = resize(out_img, [int(size * maximum)] * 3)
-
-    maximum = int(maximum * size)
-
-    return out_img, maximum
+    return out_img, np.max(out_img.shape)
 
 
 def create_mosaic_normal(out_img, maximum, frameskip):
@@ -88,6 +94,10 @@ def create_mosaic_normal(out_img, maximum, frameskip):
     new_img: numpy array
 
     """
+    if np.min(out_img.shape)==1: # Single slice (don't tile but fake a video)
+        out_img = np.squeeze(out_img)
+        return np.array([out_img, out_img])
+            
     new_img = np.array(
         [np.hstack((
             np.hstack((
@@ -193,9 +203,13 @@ def write_gif_normal(filename, size=1, fps=18, frameskip=1):
     # Figure out extension
     ext = '.{}'.format(parse_filename(filename)[2])
 
+    # show_formats()
+    # help(name='gif')
+    
     # Write gif file
-    mimwrite(filename.replace(ext, '.gif'), new_img,
-             format='gif', fps=int(fps * size))
+    print('***', new_img.shape)
+    mimwrite(filename.replace(ext, '.gif'), (new_img*32).astype(np.uint8)*8,
+             fps=int(fps * size))
 
 
 def write_gif_depth(filename, size=1, fps=18, frameskip=1):
