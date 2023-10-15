@@ -48,38 +48,28 @@ def load_and_prepare_image(filename, size=1):
     out_img: numpy array
 
     """
-    # Load NIfTI file
-    data = nb.load(filename).get_fdata()
+    out_img = nb.load(filename).get_fdata()
+    print('gif_your_nifti', out_img.shape)    
 
-    maximum = np.max(data.shape)
-
-    print('***', data.shape)    
-
-    assert(len(data.shape)>=2)
+    assert(len(out_img.shape)>=2)
     
-    if len(data.shape)==2:
-        print('Implement and check this')
-        assert(False)
+    if len(out_img.shape)==2:
+        out_img = np.expand_dims(out_img, axis=0)
+    elif len(out_img.shape)>3:
+        while len(out_img.shape)>3:
+            out_img = np.take(out_img, np.min(out_img.shape)//2, axis=np.argmin(out_img.shape)).squeeze()
+            print('gif_your_nifti', out_img.shape)    
         
-    if len(data.shape)>3:
-        print('Implement and check this')
-        assert(False)
-        
-    print('***', data.shape)    
+    print('gif_your_nifti', out_img.shape)    
 
-    out_img = data/np.nanmax(data) # Scale image values between 0-1
+    out_img /= np.nanmax(out_img)
     
-    if np.min(data.shape)==1: # Single slice
-        if True:
-            out_img = resize(out_img.squeeze(), np.ceil(np.array([180+1]*2)*size).astype(np.uint16))
-            out_img = np.expand_dims(out_img, axis=0)
-        else:
-            out_img = resize(out_img, np.ceil(np.array(out_img.shape)*size).astype(np.uint16))
+    if np.min(out_img.shape)==1: # Single slice
+        out_img = resize(out_img.squeeze(), np.ceil(np.array([180+1]*2)*size).astype(np.uint16))
+        out_img = np.expand_dims(out_img, axis=0)
     else:
-        print('.....',out_img.shape)
         out_img = np.pad(out_img, 5)
         out_img = resize(out_img, np.ceil(np.array([180+1]*3)*size).astype(np.uint16))
-        print('.....',out_img.shape)
 
     return out_img, np.max(out_img.shape)
 
