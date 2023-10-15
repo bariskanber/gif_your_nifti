@@ -71,6 +71,7 @@ def load_and_prepare_image(filename, size=1):
         out_img = np.pad(out_img, 5)
         out_img = resize(out_img, np.ceil(np.array([180+1]*3)*size).astype(np.uint16))
 
+    print('gif_your_nifti', out_img.shape)    
     return out_img, np.max(out_img.shape)
 
 
