@@ -179,7 +179,7 @@ def create_mosaic_RGB(out_img1, out_img2, out_img3, maximum, frameskip):
     return out_img
 
 
-def write_gif_normal(filename, size=1, fps=18, frameskip=1):
+def write_gif_normal(filename, size=1, fps=18, frameskip=1, colorcompressratio=1):
     """Procedure for writing grayscale image.
 
     Parameters
@@ -192,6 +192,8 @@ def write_gif_normal(filename, size=1, fps=18, frameskip=1):
         Frames per second
     frameskip: int
         Will skip frames if >1
+    colorcompressratio: int
+        Will compress colors if >1
 
     """
     # Load NIfTI and put it in right shape
@@ -208,8 +210,9 @@ def write_gif_normal(filename, size=1, fps=18, frameskip=1):
     
     # Write gif file
     print('***', new_img.shape)
-    mimwrite(filename.replace(ext, '.gif'), (new_img*32).astype(np.uint8)*8,
-             fps=int(fps * size))
+    mimwrite(filename.replace(ext, '.gif'), 
+        (new_img * 255.0/colorcompressratio).astype(np.uint8) * colorcompressratio, 
+        fps = int(fps * size))
 
 
 def write_gif_depth(filename, size=1, fps=18, frameskip=1):

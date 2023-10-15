@@ -41,6 +41,11 @@ def main():
         metavar=cfg.frameskip, default=cfg.frameskip,
         help="Will skip frames if >1 (useful for reducing GIF file size)."
         )
+    parser.add_argument(
+        '--colorcompressratio', type=int, required=False,
+        metavar=cfg.colorcompressratio, default=cfg.colorcompressratio,
+        help="Will compress colors if >1 (useful for reducing GIF file size)."
+        )
 
     args = parser.parse_args()
     cfg.mode = (args.mode).lower()
@@ -48,6 +53,7 @@ def main():
     cfg.fps = args.fps
     cfg.cmap = args.cmap
     cfg.frameskip = args.frameskip
+    cfg.colorcompressratio = args.colorcompressratio
 
     # Welcome message
     welcome_str = '{} {}'.format('gif_your_nifti', __version__)
@@ -59,12 +65,13 @@ def main():
     print('  size = {}'.format(cfg.size))
     print('  fps  = {}'.format(cfg.fps))
     print('  frameskip  = {}'.format(cfg.frameskip))
+    print('  colorcompressratio  = {}'.format(cfg.colorcompressratio))
 
     # Determine gif creation mode
     if cfg.mode in ['normal', 'pseudocolor', 'depth']:
         for f in args.filename:
             if cfg.mode == 'normal':
-                core.write_gif_normal(f, cfg.size, cfg.fps, cfg.frameskip)
+                core.write_gif_normal(f, cfg.size, cfg.fps, cfg.frameskip, cfg.colorcompressratio)
             elif cfg.mode == 'pseudocolor':
                 print('  cmap = {}'.format(cfg.cmap))
                 core.write_gif_pseudocolor(f, cfg.size, cfg.fps, cfg.cmap, cfg.frameskip)
