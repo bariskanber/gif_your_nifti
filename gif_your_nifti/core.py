@@ -70,7 +70,11 @@ def load_and_prepare_image(filename, size=1):
     out_img = data/np.nanmax(data) # Scale image values between 0-1
     
     if np.min(data.shape)==1: # Single slice
-        out_img = resize(out_img, np.ceil(np.array(out_img.shape)*size).astype(np.uint16))
+        if True:
+            out_img = resize(out_img.squeeze(), np.ceil(np.array([180+1]*2)*size).astype(np.uint16))
+            out_img = np.expand_dims(out_img, axis=0)
+        else:
+            out_img = resize(out_img, np.ceil(np.array(out_img.shape)*size).astype(np.uint16))
     else:
         print('.....',out_img.shape)
         out_img = np.pad(out_img, 5)
