@@ -48,9 +48,20 @@ def load_and_prepare_image(filename, size=1):
     out_img: numpy array
 
     """
-    out_img = nb.load(filename).get_fdata()
-    print('gif_your_nifti', out_img.shape)    
+    nibobj=nb.load(filename)
 
+    try:
+        out_img = nibobj.get_fdata()
+    except:
+        out_img = np.asanyarray(nibobj.dataobj)
+
+    print('gif_your_nifti', out_img.shape, out_img.dtype)
+
+    if out_img.dtype==[('R', 'u1'), ('G', 'u1'), ('B', 'u1')]:
+        print(out_img.dtype.names, out_img['R'].shape)
+        out_img = (out_img['R'].astype(np.float32) + out_img['G'] + out_img['B'])/3
+        print('gif_your_nifti', out_img.shape, out_img.dtype)
+    
     assert(len(out_img.shape)>=2)
     
     if len(out_img.shape)==2:
