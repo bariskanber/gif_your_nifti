@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib.cm import get_cmap
 from imageio import mimwrite, help, show_formats
 from skimage.transform import resize
-
+from skimage import exposure
 
 def parse_filename(filepath):
     """Parse input file path into directory, basename and extension.
@@ -33,7 +33,7 @@ def parse_filename(filepath):
     return dirname, basename, ext
 
 
-def load_and_prepare_image(filename, size=1):
+def load_and_prepare_image(filename, size=1, histeq=0):
     """Load and prepare image data.
 
     Parameters
@@ -42,7 +42,8 @@ def load_and_prepare_image(filename, size=1):
         Input file (eg. /john/home/image.nii.gz)
     size: float
         Image resizing factor.
-
+    histeq: int
+	Will perform histogram equalization if set to 1
     Returns
     -------
     out_img: numpy array
@@ -55,7 +56,7 @@ def load_and_prepare_image(filename, size=1):
     except:
         out_img = np.asanyarray(nibobj.dataobj)
 
-    print('gif_your_nifti', out_img.shape, out_img.dtype)
+    print('gif_your_nifti (shape,dtype,min,max)', out_img.shape, out_img.dtype, np.nanmin(out_img), np.nanmax(out_img))    
 
     if out_img.dtype==[('R', 'u1'), ('G', 'u1'), ('B', 'u1')]:
         print(out_img.dtype.names, out_img['R'].shape)
@@ -71,10 +72,18 @@ def load_and_prepare_image(filename, size=1):
             out_img = np.take(out_img, np.min(out_img.shape)//2, axis=np.argmin(out_img.shape)).squeeze()
             print('gif_your_nifti', out_img.shape)    
         
-    print('gif_your_nifti', out_img.shape)    
+    print('gif_your_nifti (shape,dtype,min,max)', out_img.shape, out_img.dtype, np.nanmin(out_img), np.nanmax(out_img))    
 
+    out_img = out_img.astype(np.float32)
+    out_img -= np.nanmin(out_img)
     out_img /= np.nanmax(out_img)
     
+    if histeq==1: 
+        p2, p98 = np.percentile(out_img, (2, 98))
+        out_img = exposure.rescale_intensity(out_img, in_range=(p2, p98))
+        out_img -= np.nanmin(out_img)
+        out_img /= np.nanmax(out_img)
+     
     if np.min(out_img.shape)==1: # Single slice
         out_img = resize(out_img.squeeze(), np.ceil(np.array([180+1]*2)*size).astype(np.uint16))
         out_img = np.expand_dims(out_img, axis=0)
@@ -185,7 +194,7 @@ def create_mosaic_RGB(out_img1, out_img2, out_img3, maximum, frameskip):
     return out_img
 
 
-def write_gif_normal(filename, size=1, fps=18, frameskip=1, colorcompressratio=1):
+def write_gif_normal(filename, size=1, fps=18, frameskip=1, colorcompressratio=1, histeq=0):
     """Procedure for writing grayscale image.
 
     Parameters
@@ -200,10 +209,11 @@ def write_gif_normal(filename, size=1, fps=18, frameskip=1, colorcompressratio=1
         Will skip frames if >1
     colorcompressratio: int
         Will compress colors if >1
-
+    histeq: int
+	    Will perform histogram equalization if set to 1
     """
     # Load NIfTI and put it in right shape
-    out_img, maximum = load_and_prepare_image(filename, size)
+    out_img, maximum = load_and_prepare_image(filename, size, histeq)
 
     # Create output mosaic
     new_img = create_mosaic_normal(out_img, maximum, frameskip)
