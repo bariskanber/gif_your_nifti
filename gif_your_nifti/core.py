@@ -73,12 +73,15 @@ def load_and_prepare_image(filename, size=1, histeq=0):
             print('gif_your_nifti', out_img.shape)    
         
     print('gif_your_nifti (shape,dtype,min,max)', out_img.shape, out_img.dtype, np.nanmin(out_img), np.nanmax(out_img))    
+    
+    num_uniq_values = len(np.unique(out_img))
+    print('num_uniq_values',num_uniq_values)
 
     out_img = out_img.astype(np.float32)
     out_img -= np.nanmin(out_img)
     out_img /= np.nanmax(out_img)
     
-    if histeq==1: 
+    if histeq==1 and num_uniq_values>2: # num_uniq_values=2 would be a B/W image  
         p2, p98 = np.percentile(out_img, (2, 98))
         out_img = exposure.rescale_intensity(out_img, in_range=(p2, p98))
         out_img -= np.nanmin(out_img)
