@@ -56,13 +56,15 @@ def load_and_prepare_image(filename, size=1, histeq=0):
     except:
         out_img = np.asanyarray(nibobj.dataobj)
 
-    print('gif_your_nifti (shape,dtype,min,max)', out_img.shape, out_img.dtype, np.nanmin(out_img), np.nanmax(out_img))    
+    print('gif_your_nifti (shape,dtype)', out_img.shape, out_img.dtype)    
 
     if out_img.dtype==[('R', 'u1'), ('G', 'u1'), ('B', 'u1')]:
         print(out_img.dtype.names, out_img['R'].shape)
         out_img = (out_img['R'].astype(np.float32) + out_img['G'] + out_img['B'])/3
-        print('gif_your_nifti', out_img.shape, out_img.dtype)
-    
+        print('gif_your_nifti (shape,dtype)', out_img.shape, out_img.dtype)
+
+    print('gif_your_nifti (min,max)', np.nanmin(out_img), np.nanmax(out_img))    
+  
     assert(len(out_img.shape)>=2)
     
     if len(out_img.shape)==2:
