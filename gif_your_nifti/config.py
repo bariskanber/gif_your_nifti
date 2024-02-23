@@ -6,3 +6,5 @@ fps = 20
 cmap = 'hot'
 frameskip = 1
 colorcompressratio = 1
+histeq = 0
+
