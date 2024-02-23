@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib.cm import get_cmap
 from imageio import mimwrite, help, show_formats
 from skimage.transform import resize
-
+import imageio.v3 as iio
 
 def parse_filename(filepath):
     """Parse input file path into directory, basename and extension.
@@ -205,9 +205,9 @@ def write_gif_normal(filename, size=1, fps=18, frameskip=1, colorcompressratio=1
     
     # Write gif file
     print('***', new_img.shape)
-    mimwrite(filename.replace(ext, '.gif'), 
+    iio.mimwrite(filename.replace(ext, '.gif'), 
         (new_img * 255.0/colorcompressratio).astype(np.uint8) * colorcompressratio, 
-        fps = int(fps * size))
+        fps = int(fps * size), format='GIF-FI')
 
 
 def write_gif_depth(filename, size=1, fps=18, frameskip=1):
